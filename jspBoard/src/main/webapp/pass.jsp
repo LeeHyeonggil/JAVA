@@ -4,36 +4,35 @@
 <%@ include file="inc/header.jsp" %>
 <%@ include file="inc/aside.jsp" %>
 <% 
-    String id =request.getParameter("id");
-    String mode =request.getParameter("mode");
-    HttpSession sess = request.getSession();
-    if("ADMIN".equals(sess.getAttribute("role"))){
-    	if("edit".equals(mode)){   	
+   String id =request.getParameter("id");
+   String mode =request.getParameter("mode");
+   HttpSession sess = request.getSession();
+   if("ADMIN".equals(sess.getAttribute("role"))){
+	  if("edit".equals(mode)){ 
 %>
-    관리자 권한    <form id="gopage" action="edit.jsp" method="post">
-                      <input type="hidden" name="id" value="<%=id %>" />
-                </form>
-                <script>
-                    this.document.getElementById("gopage").submit();
-                </script>
-<%    
-      }else if("del".equals(mode)){
-%>    	  
-    	  <form id="gopage" action="del" method="post">
-              <input type="hidden" name="id" value="<%=id %>" />
-          </form>
-          <script>
-             y = confirm("정말로 삭제하시겠습니까?");
-             if(y){
-             this.document.getElementById("gopage").submit();
-             }else{
-            	 this.history.go(-1);
-             }
-          </script>
-<%
-      }
+        <form id="gopage" action="edit.jsp" method="post">
+           <input type="hidden" name="id" value="<%=id %>">
+        </form>
+        <script>
+           this.document.getElementById("gopage").submit();
+        </script>
+<%  
+	  }else if("del".equals(mode)){
+%>		  
+	     <form id="gopage" action="del" method="post">
+	         <input type="hidden" name="id" value="<%=id %>">
+	     </form>
+	     <script>
+	         let y = confirm("정말로 삭제하시겠습니까?");
+	         if(y){
+	            this.document.getElementById("gopage").submit();
+	         }else{
+	        	this.history.go(-1);
+	         }   
+	     </script>
+<%	     
+	  }
    }
-  
    String modeText = "삭제";
    if(mode.equals("edit")){
 	  modeText = "수정";   

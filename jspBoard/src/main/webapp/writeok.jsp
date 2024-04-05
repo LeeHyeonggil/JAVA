@@ -10,7 +10,7 @@
    Connection conn = db.getConnection(); 
    JBoardDao dao = new JBoardDao(conn);
    int rs = dao.insertDB(bDto);
-   db.closeConnection();
+
    //response.sendRedirect("index.jsp");
 %>
   

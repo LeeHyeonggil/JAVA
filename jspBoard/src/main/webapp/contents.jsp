@@ -1,21 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, 
-                 jspBoard.service.*,
-                 jspBoard.dto.BDto,
-                 java.text.SimpleDateFormat" %>    
+<%@ page import="jspBoard.service.*, 
+                jspBoard.dto.BDto,
+                java.text.SimpleDateFormat" %>  
+                  
 <%@ include file="inc/header.jsp" %>
 <%@ include file="inc/aside.jsp" %>
 <%   
    HttpSession sess2 = request.getSession(true);
    Cookie[] cooks2 = request.getCookies();
 
+   String userid = (String) sess2.getAttribute("userid");
    String id = request.getParameter("id"); 
    String cpg = request.getParameter("cpg");
    if(cpg == null) cpg = "1";
 
    SimpleDateFormat sdf = new SimpleDateFormat("yyyy년 MM월 dd일 hh시 mm분 ss초");
-   
+  
    Dbworks db = new Dbworks();
    db.setId(id);
    BDto rs = db.getSelectOne();
@@ -69,6 +70,89 @@
           </div>
           
        </div>
-    </section>        
+       
+          
+       <link rel="stylesheet" href="css/summernote-bs4.css">
+       <script src="js/summernote-bs4.js"></script>
+       <script>
+            $(function(){
+              $("#comment").summernote({
+                  width:'85%',
+                  height:'100px',
+                  toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['font', ['strikethrouth','superscript', 'subscript']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']]
+                  ] 
+               });
+            }); 
 
+       </script>
+       
+       <ul class="list-group list-group-flush comments">
+          <%@ include file="comments_list.jsp" %>
+          <%@ include file="comments_write.jsp" %>          
+       </ul>
+    </section>        
+    <script>
+      $(function(){
+         $(".cdel").click(function(e){
+            e.preventDefault();
+            const $userid = $(this).data("userid");
+            if($userid == "<%=userid%>"){
+               if(confirm("정말로 삭제하시겠습니까?")){
+                  const $link = $(this).attr("href");
+                  location.href=$link+"&userid="+$userid;
+               }   
+            }else{
+               alert("삭제할 권한이 없습니다.");
+               return;
+            }
+         });
+         $(".cedit").click(function(e){
+           e.preventDefault();
+           let $userid, $num, username, comment, wdate, id, $form;
+
+           $userid = $(this).data("userid");
+           $num = $(".cedit").index(this);
+          // alert($num);
+             username = $('.cusername').eq($num).text();
+             comment = $('.ccomment').eq($num).html();
+             id = $(".cid").eq($num).val();
+             
+             $form = '<form name="commentForm" id="commentForm"'+
+                         'class="d-flex w-100" method="post" action="./insertcomment">'+
+                         '<div class="form-box">'+
+                         '<div class="mb-2">'+
+                         '<label>이름 : </label>'+
+                         '<input type="text" name="username" class="cusername"'+
+                         'value="'+username+'">'+
+                         '</div>'+
+                         '<div class="d-flex">'+
+                         '<textarea name="comment" class="c_comment ccomment">'+comment+'</textarea>'+
+                         '<button type="submit" class="comment-btn">댓글수정</button>'+
+                         '</div></div>'+    
+                         '<input type="hidden" name="id" class="cid" value="'+id+'"></form>';
+             
+           if($userid == "<%=userid%>" || "<%=userid%>" == "admin"){
+              $('.editform').eq($num).html($form);
+              $('.c_comment').summernote({
+                     width:'85%',
+                     height:'100px',
+                     toolbar: [
+                       ['style', ['bold', 'italic', 'underline', 'clear']],
+                       ['font', ['strikethrouth','superscript', 'subscript']],
+                       ['color', ['color']],
+                       ['para', ['ul', 'ol', 'paragraph']]
+                     ] 
+              });
+           }else{
+                 alert("수정할 권한이 없습니다.");
+                 return;
+             }
+           
+         });
+      });
+    </script>
 <%@ include file="inc/footer.jsp" %>  

@@ -3,7 +3,7 @@ package jspBoard.dto;
 import java.sql.Timestamp;
 
 public class MDto {
-
+   
 	private int id;
 	private String userid;
 	private String userpass;
@@ -138,9 +138,5 @@ public class MDto {
 				+ ", useremail=" + useremail + ", usertel=" + usertel + ", addr1=" + addr1 + ", addr2=" + addr2
 				+ ", userlink=" + userlink + ", role=" + role + ", wdate=" + wdate + ", zipcode=" + zipcode + "]";
 	}
-	
-	
-	
 
-	
 }

@@ -61,12 +61,11 @@ public class MembersDao {
 	    	pstmt.setString(2, userpass);
 	    	rs = pstmt.executeQuery();
 	    	if(rs.next()) {
-	    	
-	    	dto.setId(rs.getInt("id"));
-	    	dto.setUserid(rs.getString("userid"));
-	    	dto.setUseremail(rs.getString("useremail"));
-	    	dto.setUsername(rs.getString("username"));
-	    	dto.setRole(rs.getString("role"));
+	    	  dto.setId(rs.getInt("id"));
+	    	  dto.setUserid(rs.getString("userid"));
+	    	  dto.setUseremail(rs.getString("useremail"));
+	    	  dto.setUsername(rs.getString("username"));
+	    	  dto.setRole(rs.getString("role"));
 	    	}
 	    }catch(SQLException e) {
 	    	e.printStackTrace();
@@ -74,12 +73,11 @@ public class MembersDao {
 			  try {
 					if(pstmt != null) pstmt.close();
 					if(rs != null) rs.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
+				  } catch (SQLException e) {
+					  e.printStackTrace();
+				  }
 				}
-		}
-	    System.out.println(dto.getId());
-	    return dto;
+		return dto;
 	}
 	
 	//회원중복 검증

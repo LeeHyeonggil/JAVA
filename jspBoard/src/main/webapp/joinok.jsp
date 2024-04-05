@@ -6,11 +6,12 @@
 <jsp:useBean id="db" class="jspBoard.dao.DBConnect" scope="page"/>
 <jsp:useBean id="mDto" class="jspBoard.dto.MDto" scope="page" />
 <jsp:setProperty name="mDto" property="*" /> 
+
 <%
    Connection conn = db.getConnection(); 
    MembersDao dao = new MembersDao(conn);
    int rs = dao.insertDB(mDto);
-   db.closeConnection();
+
    //response.sendRedirect("index.jsp");
 %>
   

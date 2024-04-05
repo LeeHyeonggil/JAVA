@@ -1,233 +1,124 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8" isELIgnored="true" %>
-<%@ page  import="java.util.ArrayList,                   
-                  jspBoard.dto.BDto,
-                  jspBoard.service.*,
-                  java.sql.Timestamp,
-                  java.text.SimpleDateFormat,
-                  java.text.NumberFormat" %>  
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>                  
+    pageEncoding="UTF-8"%>
 <jsp:include page="inc/header.jsp" flush="true" />
-<jsp:include page="inc/aside.jsp" />
-<%
-    HttpSession sess = request.getSession(true);
-    String sname = request.getParameter("searchname");  //검색
-    String svalue = request.getParameter("searchvalue");
-     
-    /* 페이징을 위한 변수 */
-    int pg; //받아올 현재 페이지 번호
-    int allCount; //1. 전체 개시글 수 
-    int listCount = 10; //2. 한 페이지에 보일 목록 수
-    int pageCount = 10; //3. 한 페이지에 보일 페이지 수  
-    int limitPage; //4. 쿼리문으로 보낼 시작번호
-        
-    String cpg = request.getParameter("cpg");
-    pg = (cpg == null)?1:Integer.parseInt(cpg);  //3항 연산   
-    limitPage = (pg-1)*listCount;  //(현재페이지-1)x목록수 
-    
-    /*페이징 변수 끝*/
-    
-    Dbworks db = new Dbworks(limitPage, listCount, sname, svalue);
-    
-    /* 전체 개시글 의 수를 가져옴 */
-    allCount = db.getAllSelect();
-    
-    //현재페이지, 전체글수, 페이지수, 글목록 수로 Paging 클래스 호출
-    Paging myPage = new Paging(pg, allCount, pageCount, listCount);
+<%@ include file="inc/aside.jsp" %>
+<script src="js/jquery.validate.min.js"></script>
+<script src="js/validate.js"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+//다음주소 api
+function dPostcode() {
+   new daum.Postcode({
+       oncomplete: function(data) {
+           // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
 
-    ArrayList<BDto> list = null;
-    if(sname == null || sname.trim().isEmpty()){    
-       list = db.getList();
-    }else{
-       list = db.getSearchList();
-    }
-    
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
-    NumberFormat formatter = NumberFormat.getInstance();   
-    
- %>
+           // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+           // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+           var addr = ''; // 주소 변수
+           var extraAddr = ''; // 참고항목 변수
+
+           //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+           if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+               addr = data.roadAddress;
+           } else { // 사용자가 지번 주소를 선택했을 경우(J)
+               addr = data.jibunAddress;
+           }
+
+           // 우편번호와 주소 정보를 해당 필드에 넣는다.
+           document.getElementById('zipcode').value = data.zonecode;
+           document.getElementById("addr1").value = addr;
+           // 커서를 상세주소 필드로 이동한다.
+           document.getElementById("addr2").focus();
+       }
+   }).open();
+}
+</script>
     <section>
-            <!-- listbox -->
-            <div class="listbox">
-                <h1 class="text-center mb-5">게시판</h1>
-                <div class="d-flex justify-content-between py-4">
-                    <div>
-                        <label>총 게시글</label> :<%=formatter.format(allCount) %>개 / <%=formatter.format(myPage.getTotalPages()) %>page
-                    </div>
-                    <div>
-                        <a href="/jspBoard" class="btn btn-primary">목록</a>
-                        <%--
-                        <% if(sess.getAttribute("mid") != null){ %>
-                          <a href="write.jsp" class="btn btn-primary">글쓰기</a> 
-                        <% } %>
-                        --%>
-                        <c:if test="${not empty sess.mid }">
-                           <a href="write.jsp" class="btn btn-primary">글쓰기</a>
-                        </c:if>                       
-                    </div>
-                </div>
-                <table class="table table-hover">
-                    <colgroup>
-                       <col width="8%">
-                       <col>
-                       <col width="15%">
-                       <col width="10%">
-                       <col width="15%">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>번호</th>
-                            <th>제목</th>
-                            <th>글쓴이</th>
-                            <th>조회수</th>
-                            <th>날짜</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                       <!-- loop --> 
-                   <%
-                      int num = allCount - limitPage; //게시글 번호
-                   %>
-                   
-                   <%
-                      for(int i=0; i<list.size(); i++){
-                         BDto dto = list.get(i);
-                         int id = dto.getId();
-                         int depth = dto.getDepth();
-                         String title = dto.getTitle();
-                         String writer = dto.getWriter();
-                         int hit = dto.getHit();
-                         int chit = dto.getChit();
-                         Timestamp dates = dto.getWdate();
-                         String wdate = sdf.format(dates);
-                         String styleDepth = "";
-                         if(depth > 0){
-                            String padding = (depth*10)+"px";
-                            String reicon = "<i class=\"ri-corner-down-right-line\"></i>";
-                             styleDepth = "<span style='display:inline-block;width:"+padding+"'></span>"+reicon+" ";
-                         }
-                   %>    
-                       <tr>
-                           <td class="text-center"><%=num %></td>
-                           <% if(sess.getAttribute("mid") != null){ %>
-                           <td><a href="contents.jsp?id=<%=id%>&cpg=<%=pg%>">
-                               <%=styleDepth%><%=title %>
-                            </a><span></span>
-                            <!-- 
-                               <i class="ri-file-image-fill"></i>
-                               <i class="ri-file-hwp-fill"></i>
-                               <i class="ri-file-music-fill"></i>
-                            -->   
-                            </td>
-                           <% }else{ %>
-                            <td>
-                               <a href="javascript:void(0)"><%=styleDepth%><%=title %>
-                               </a><span></span>
-                            <!-- 
-                               <i class="ri-file-image-fill"></i>
-                               <i class="ri-file-hwp-fill"></i>
-                               <i class="ri-file-music-fill"></i>
-                            -->   
-                            </td>
-                           <% } %> 
-                           <td class="text-center"><%=writer %></td>
-                           <td class="text-center"><%=hit %></td>
-                           <td class="text-center"><%=wdate %></td>
-                       </tr>
-                  <% 
-                        num--;
-                      } 
-                  %>     
-                  
-                       <!-- /loop -->
-                    </tbody>
-                </table>
-                <div class="d-flex justify-content-between py-4">
-                    <div>
-                    </div>
-                    <%
-                    //검색일때 처리
-                    String query = "";
-                    if(sname != null) {
-                      query = "&searchname="+sname+"&searchvalue="+svalue; 
-                    }
-                    %>
-                    <ul class="paging">
-                        <li>
-                            <a href="?cpg=1<%=query%>"><i class="ri-arrow-left-double-line"></i></a>
-                        </li>
-                        <li>
-                        <%                        
-                           if(myPage.getStartPage() - 1 == 0){
-                        %>
-                            <a href="?cpg=<%=myPage.getStartPage()%><%=query%>"><i class="ri-arrow-left-s-line"></i></a>
-                        <% }else{ %>
-                            <a href="?cpg=<%=myPage.getStartPage()-1%><%=query%>"><i class="ri-arrow-left-s-line"></i></a>
-                        <% } %>
-                      
-                        </li>
-                        <%
-                        //시작페이지 6
-                        for(int i = myPage.getStartPage(); i <= myPage.getEndPage(); i++){
-                           if(pg == i) {
-                              out.println("<li><a href=\"?cpg="+i+query+"\" class=\"active\">"+i+"</a></li>");
-                           }else{
-                              out.println("<li><a href=\"?cpg="+i+query+"\">"+i+"</a></li>");
-                           }
-                        }
-                        //끝페이지 10
-                        %>
-                        
-                        <li>
-                          <%
-                           if(myPage.getEndPage() + 1 > myPage.getTotalPages()){
-                          %>
-                            <a href="?cpg=<%=myPage.getEndPage()%><%=query%>"><i class="ri-arrow-right-s-line"></i></a>
-                         <%
-                           }else{ 
-                         %>   
-                            <a href="?cpg=<%=myPage.getEndPage()+1%><%=query%>"><i class="ri-arrow-right-s-line"></i></a>
-                         <%
-                           }
-                         %>
-                        </li>
-                        <li>
-                            <a href="?cpg=<%=myPage.getTotalPages()%><%=query%>"><i class="ri-arrow-right-double-line"></i></a>
-                        </li>
-                    </ul>
-                    <div>
-           
-                        <a href="/jspBoard" class="btn btn-primary">목록</a>
-                        <% if(sess.getAttribute("mid") != null){ %>
-                          <a href="write.jsp" class="btn btn-primary">글쓰기</a> 
-                        <% } %>  
-                                         
-                    </div>
-               </div>
-               <form name="searchform" id="searchform" class="searchform" method="get">
-                   <div class="input-group my-3">
-                        <div class="input-group-prepend">
-                             <button type="button" 
-                                    class="btn btn-outline-secondary dropdown-toggle" 
-                                    data-toggle="dropdown"
-                                    value="title">
-                                제목검색
-                              </button>
-                              <input type="hidden" name="searchname" id="searchname" value="title">
-                              <div class="dropdown-menu">
-                                <a class="dropdown-item" href="writer">이름검색</a>
-                                <a class="dropdown-item" href="title">제목검색</a>
-                                <a class="dropdown-item" href="content">내용검색</a>
-                            </div>
+       <!-- listbox -->
+       <div class="listbox">
+          <h1 class="text-center mb-5">회원가입</h1>
+          <p class="text-danger">* 표시가 되어 있는 부분은 필수 항목입니다.</p>
+       
+                     <form name="registerForm" action="insert" id="registerform" class="registerform" method="post">
+                    <div class="row">
+                        <div class="col-5 d-flex align-items-center mb-4">
+                            <label for="username" class="text-right mr-3 col-4">이름*</label>
+                            <input type="text" name="username" id="username" 
+                                   class="form-control col-8" placeholder="이름" />
                         </div>
-                       <input type="search" name="searchvalue" class="form-control" placeholder="검색">
-                       <div class="input-group-append">
-                          <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i></button>
-                       </div>
-                   </div>
-               </form>
-            </div>
-            <!-- /listbox-->
-         </section>
-    <%@ include file="inc/footer.jsp" %>     
+                        <div class="col-5 d-flex align-items-center mb-4">
+                            <label for="uid" class="text-right mr-3 col-4">아이디*</label>
+                            <input type="text" name="userid" id="userid" 
+                                   class="form-control col-8" placeholder="아이디" />
+                        </div>
+                        <div class="col-2 mb-4"></div>
+
+
+                        <div class="col-5 d-flex align-items-center mb-4">
+                            <label for="upass" class="text-right mr-3 col-4">비밀번호*</label>
+                            <input type="password" name="userpass" id="userpass"
+                                   class="form-control col-8" placeholder="비밀번호">
+                        </div>
+                        <div class="col-5 d-flex align-items-center mb-4">
+                            <label for="repassword" class="text-right mr-3 col-4">비밀번호 확인</label>
+                            <input type="password" name="reuserpass" id="reuserpass"
+                                   class="form-control col-8" placeholder="비밀번호확인">
+                        </div>
+                        <div class="col-2 mb-4"></div>
+
+
+                        <div class="col-6 d-flex align-items-center mb-4">
+                            <label for="email" class="text-right mr-3 col-4">이메일*</label>
+                            <input type="text" name="useremail" id="useremail"
+                                   class="form-control col-8" placeholder="이메일">
+                        </div>
+                        <div class="col-6 mb-4"></div>
+
+                        
+                        <div class="col-8 d-flex align-items-center mb-4">
+                          <label for="usertel" class="text-right mr-3 col-3">전화번호*</label>
+                          <input type="text" name="usertel" id="usertel"
+                                 class="form-control col-8 mr-2" placeholder="010" 
+                           oninput="autoHyphen(this)" maxlength="13"> 
+                        </div>
+                        <div class="col-4"></div>
+
+
+                        <div class="col-5 d-flex">
+                          <label for="zip" class="text-right mr-2 col-5">우편번호</label>
+                          <input type="number" name="zipcode" id="zipcode"
+                                 class="form-control col-7 mx-2 mt-1" placeholder="우편번호" readonly>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" id="zip" class="btn btn-secondary mt-1">우편번호찾기</button>
+                        </div>
+                        <div class="col-4"></div>
+
+                        <div class="col-12 d-flex">
+                            <label for="zip" class="text-right mr-2 col-5">주소</label>
+                            <input type="text" name="addr1" id="addr1"
+                                 class="form-control col-7 mx-2 mt-1" placeholder="주소" readonly>
+                        </div>
+                        <div class="col-12 d-flex mb-4">
+                          <label for="zip" class="text-right mr-2 col-5 bg-white"></label>
+                          <input type="text" name="addr2" id="addr2"
+                               class="form-control col-7 mx-2 mt-1" placeholder="상세주소">
+                        </div>
+                        <div class="col-12 d-flex mb-4">
+                          <label for="file" class="text-right mr-2 col-5">사진</label>
+                          <input type="file" name="file" id="file"
+                               class="form-control col-7 mx-2 mt-1" placeholder="사진업로드">
+                        </div>
+                        <div class="col-12 text-center">
+                            <button class="btn btn-danger px-5 mx-2" type="reset">취소</button>
+                            <button class="btn btn-primary px-5 mx-2" type="submit">전송</button>
+                        </div>
+         
+                        <input type="hidden" name="mode" value="join" />
+                    </div>
+                </form>
+       
+       </div>
+    </section>   
+    
+<%@ include file="inc/footer.jsp" %>  

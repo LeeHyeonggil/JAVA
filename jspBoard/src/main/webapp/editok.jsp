@@ -9,7 +9,7 @@
 <% if(result == 1){ %>
 <script>
   alert("글을 등록했습니다.");
-  location.href="./contents.jsp?id=<%=id%>";
+  location.href="./contents.jsp?id=<%=id %>";
 </script>
 </head>
 <body>

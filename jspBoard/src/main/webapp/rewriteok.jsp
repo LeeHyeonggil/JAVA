@@ -18,7 +18,7 @@
    bDto.setDepth(bDto.getDepth()+1);
    bDto.setRenum(bDto.getRenum());
    int rs = dao.insertDB(bDto);
-   db.closeConnection();
+
    //response.sendRedirect("index.jsp");
 %>
   
@@ -30,7 +30,7 @@
 
 <script>
   alert("글을 등록했습니다.");
-  location.href="./index.jsp?cpg=<%=cpg %>";
+  location.href="./index.jsp?cpg=<%=cpg%>";
 </script>
 
 </head>
